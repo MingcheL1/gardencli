@@ -7,6 +7,7 @@
 #include <thread>
 #include <termios.h>
 #include <unistd.h>
+#include "plant.hpp"
 
 void delayCout(const std::string& text, int delay_ms = 50) {
     for (char ch : text) {
@@ -73,7 +74,6 @@ void drawMenu(const std::vector<std::string>& options, int selected,bool first) 
     }
 }
 int main() {
-
     std::vector<std::string> plants = { "marigold", "zinnias", "cosmos" };
     int selected = 0;
     bool first=true;
@@ -88,5 +88,7 @@ int main() {
 
     clearScreen();
     std::cout << "🌱 You selected: \x1b[32m" << plants[selected] << "\x1b[0m 🌱\n";
+    std::vector<Plant> plantPots(5, Plant("", 0, 0)); // Initialize with empty plants
     return 0;
 }
+//in the main gameloop, the vector of plants should always be filled. the empty pots will have plant objects with empty=true in them.
