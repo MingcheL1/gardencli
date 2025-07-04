@@ -1,62 +1,92 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <map>
+#include <locale>
+#include <chrono>
+#include <thread>
+#include <termios.h>
+#include <unistd.h>
 
-using namespace std;
-
-
-vector<string> flower = {
-    "     █     ",
-    "   █████   ",
-    " ███ █ ███ ",
-    "   █████   ",
-    "     █     ",
-    "     █     ",
-    "  ███████  ",
-    " █████████ ",
-    "███████████",
-    " █████████ ",
-    "  ███████  "
-};
-
-void render() {
-    const int rows = 3;
-    const int cols = 3;
-    const int flowerHeight = flower.size();
-    const string horizontalGap = "       "; 
-    const string verticalGap = "\n\n";      
-
-    for (int row = 0; row < rows; ++row) {
-        for (int line = 0; line < flowerHeight; ++line) {
-            for (int col = 0; col < cols; ++col) {
-                cout << flower[line];
-                if (col < cols - 1) cout << horizontalGap;
-            }
-            cout << '\n';
+void delayCout(const std::string& text, int delay_ms = 50) {
+    for (char ch : text) {
+        std::cout << ch << std::flush;
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+    }
+}
+enum Key {UP,DOWN,LEFT,RIGHT,ENTER,ESCAPE,OTHER};
+char getChar(){
+    struct termios oldt, newt;
+    char ch;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    read(STDIN_FILENO, &ch, 1);
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    return ch;
+}
+Key getInput(){
+    char ch=getChar();
+    if(ch=='\033'){ //escape
+        getChar();
+        char arrow=getChar();
+        if(arrow=='A'){
+            return UP;
         }
-        if (row < rows - 1) cout << verticalGap;
+        else if(arrow=='B'){
+            return DOWN;
+        }
+        else if(arrow=='C'){
+            return RIGHT;
+        }
+        else if(arrow=='D'){
+            return LEFT;
+        }
+        else{
+            return OTHER;
+        }
+    }
+    else if(ch=='\n' || ch=='\r'){
+        return ENTER;
+    }
+    return OTHER;
+}
+void clearScreen(){
+    std::cout<<"\x1b[2J\x1b[H";
+}
+void drawMenu(const std::vector<std::string>& options, int selected,bool first) {
+    clearScreen();
+    if(first){
+        delayCout("\n\nPlease choose your starter plant\n", 30);
+    }
+    else{
+        std::cout << "\n\nPlease choose your starter plant\n";
+    }
+    std::cout << "\n";
+    for (size_t i = 0; i < options.size(); ++i) {
+        if (i == selected) {
+            std::cout << "[\x1b[32mx\x1b[0m] " << options[i] << "\n"; 
+        } else {
+            std::cout << "[ ] " << options[i] << "\n";
+        }
     }
 }
-
-
-void printGradientBar(int width) {
-    int rStart = 0, gStart = 0, bStart = 255;     // Blue
-    int rEnd = 255, gEnd = 0, bEnd = 127;         // Pink
-
-    for (int i = 0; i < width; ++i) {
-        float t = static_cast<float>(i) / (width - 1);
-        int r = rStart + t * (rEnd - rStart);
-        int g = gStart + t * (gEnd - gStart);
-        int b = bStart + t * (bEnd - bStart);
-
-        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m█";
-    }
-    std::cout << "\033[0m" << std::endl;
-}
-
 int main() {
-    printGradientBar(60);  // You can adjust the width
+
+    std::vector<std::string> plants = { "marigold", "zinnias", "cosmos" };
+    int selected = 0;
+    bool first=true;
+    while (true) {
+        drawMenu(plants, selected,first);
+        first=false;
+        Key key = getInput();
+        if (key == UP && selected > 0) selected--;
+        else if (key == DOWN && selected < (int)plants.size() - 1) selected++;
+        else if (key == ENTER) break;
+    }
+
+    clearScreen();
+    std::cout << "🌱 You selected: \x1b[32m" << plants[selected] << "\x1b[0m 🌱\n";
     return 0;
 }
-
-
