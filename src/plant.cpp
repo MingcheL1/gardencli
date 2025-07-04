@@ -1,62 +1,49 @@
-#include <string>
+#include "plant.hpp"
 #include <vector>
+#include <string>
 
 using namespace std;
-class Plant{
-    private:
-        int time;
-        bool watered;
-        int buyPrice;
-        int sellPrice;
-        string name;
-        int stage;
-        bool empty;
+Plant::Plant(string name, int growthTime, int sellPrice)
+    : name(name), growthTime(growthTime), countdown(growthTime), stage(0), watered(false), sellPrice(sellPrice) {}
 
-    public:
-        vector<string> display(){
-            if(empty){
-                return {
+void Plant::water() {
+    watered = true;
+}
 
-                    "  ███████  ",
-                    " █████████ ",
-                    "███████████",
-                    " █████████ ",
-                    "  ███████  "
-                };
-            }
-            else if(stage == 0){
-                return {
+void Plant::fertilize() {
+    countdown -= 30;
+}
 
-                    "     █     ",
-                    "     █     ",
-                    "  ███████  ",
-                    " █████████ ",
-                    "███████████",
-                    " █████████ ",
-                    "  ███████  "
-                };
-            }
-            else if(stage==1){
-                if(name==""){
-                    
-                }
-            }
+void Plant::update() {
+    if (watered) {
+        countdown--;
+        if (countdown <= 0) {
+            stage++;
         }
-        int update(){
-            //countdown, pause if watered is false. update stage if time is 0. return stage.
-            if(watered){
-                time--;
-                if(time <= 0){
-                    stage++;
-                }
-            }
-            return stage;
-        }
-        int getStage() {
-            return stage;
-        }
-        void fertilize(){
-            time-=15;
-        }
+    } else {
+        watered = false;
+    }
+}
 
-};
+int Plant::getStage() const {
+    return stage;
+}
+
+bool Plant::needsWater() const {
+    return !watered;
+}
+
+int Plant::getSellPrice() const {
+    return sellPrice;
+}
+
+std::vector<std::string> Plant::display() const {
+   
+    if (stage == 0) {
+        return watered ? vector<string>{"Baby Plant"} : vector<string>{"Dry Baby Plant"};
+    } else if (stage == 1) {
+        return watered ? vector<string>{"Growing Plant"} : vector<string>{"Dry Growing Plant"};
+    } else {
+        return vector<string>{"Fully Grown Plant"};
+    }
+}

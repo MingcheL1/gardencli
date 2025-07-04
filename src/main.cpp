@@ -38,7 +38,25 @@ void render() {
     }
 }
 
+
+void printGradientBar(int width) {
+    int rStart = 0, gStart = 0, bStart = 255;     // Blue
+    int rEnd = 255, gEnd = 0, bEnd = 127;         // Pink
+
+    for (int i = 0; i < width; ++i) {
+        float t = static_cast<float>(i) / (width - 1);
+        int r = rStart + t * (rEnd - rStart);
+        int g = gStart + t * (gEnd - gStart);
+        int b = bStart + t * (bEnd - bStart);
+
+        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m█";
+    }
+    std::cout << "\033[0m" << std::endl;
+}
+
 int main() {
-    render();
+    printGradientBar(60);  // You can adjust the width
     return 0;
 }
+
+
